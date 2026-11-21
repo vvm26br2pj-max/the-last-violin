@@ -155,6 +155,24 @@ kbd.k{font:700 12px/1 var(--ui);border:1px solid #6b5a8f;background:#1b1429;bord
 .hsrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #hsName{font:600 16px/1 var(--ui);padding:10px 12px;border-radius:3px;border:1px solid var(--rim);background:#140e22;color:var(--parch);width:min(220px,60vw)}
 #hsName:focus{outline:2px solid var(--gold);outline-offset:1px}
+
+.panel.hero{width:min(780px,100%)}
+.herobox{display:grid;grid-template-columns:minmax(150px,240px) 1fr;gap:16px;width:100%;align-items:start;text-align:left}
+.heroprev{display:flex;flex-direction:column;align-items:center;gap:8px;position:sticky;top:0}
+#heroCvs{width:100%;max-width:240px;height:auto;aspect-ratio:480/560;border-radius:6px;border:1px solid var(--rim);background:#120c1e}
+.heroweap{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.heroopts{display:grid;gap:10px}
+.og{display:grid;gap:5px}
+.og>span{font:700 11px/1 var(--ui);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.og>div{display:flex;flex-wrap:wrap;gap:7px}
+.sw{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid rgba(236,223,196,.3);cursor:pointer;padding:0;touch-action:manipulation}
+.sw.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.chip{position:relative;font:600 14px/1 var(--ui);padding:9px 12px;min-height:36px;border-radius:18px;border:1px solid var(--rim);background:rgba(29,22,48,.85);color:var(--parch);cursor:pointer}
+.chip.on{border-color:var(--gold);background:rgba(90,70,20,.55);color:#fff}
+.sw.lock::after,.chip.lock::after{content:"";position:absolute;right:-4px;top:-4px;width:15px;height:15px;border-radius:50%;background:var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='11' width='12' height='9' rx='2' fill='%231d1205'/%3E%3Cpath d='M9 11V8a3 3 0 0 1 6 0v3' fill='none' stroke='%231d1205' stroke-width='2.4'/%3E%3C/svg%3E") center/11px no-repeat}
+#heroNote{color:var(--gold)}
+@media (max-width:560px){.herobox{grid-template-columns:1fr}.heroprev{position:static}#heroCvs{max-width:170px}}
+@media (max-height:560px){.herobox{grid-template-columns:minmax(130px,190px) 1fr}#heroCvs{max-width:190px}.sw{width:30px;height:30px}.chip{padding:7px 10px;min-height:32px;font-size:13px}.heroopts{gap:7px}}
 @media (prefers-reduced-motion:reduce){#btnViolin{animation:none}}
 @media (max-height:560px){
   .screen{padding:10px 14px}
@@ -172,7 +190,7 @@ kbd.k{font:700 12px/1 var(--ui);border:1px solid #6b5a8f;background:#1b1429;bord
   #storyText{font-size:clamp(14px,4.4vh,20px);margin-bottom:8px}
   #story{padding-bottom:2vh}
 }
-@media (max-height:400px){.lede{display:none}#scrTitle .fine{display:none}#scrTitle #rotTip{display:none}}
+@media (max-height:400px){#scrPay .lede{display:block!important;font-size:14px}.lede{display:none}#scrTitle .fine{display:none}#scrTitle #rotTip{display:none}}
 html.touch .btn{min-height:44px}
 @media (max-width:640px){.screen.right{justify-content:center;background:radial-gradient(ellipse at 50% 45%,rgba(14,9,24,.6),rgba(5,3,9,.92))}.screen.right .panel{margin-right:0}.lede{font-size:17px}}
 </style>
@@ -213,6 +231,7 @@ html.touch .btn{min-height:44px}
         <button class="btn" id="bFull">Play full screen</button>
         <button class="btn" id="bNew" hidden>New game</button>
         <button class="btn" id="bNGX" hidden title="Monsters have double health, you earn double score, and you start with the golden violin, Consonance and the Harmonic Boots">New Game X</button>
+        <button class="btn" id="bHero">Hero customization</button>
         <button class="btn" id="bHow">How to play</button>
         <button class="btn" id="bScores">High scores</button>
       </div>
@@ -311,6 +330,29 @@ html.touch .btn{min-height:44px}
     </div>
   </section>
 
+  <section class="screen" id="scrHero" hidden>
+    <div class="panel hero">
+      <div class="eyebrow">Make Taron your own</div>
+      <h2>Hero customization</h2>
+      <div class="herobox">
+        <div class="heroprev"><canvas id="heroCvs" width="480" height="560" aria-label="Preview of your hero"></canvas><div class="heroweap" id="heroWeap" aria-label="Preview with"></div></div>
+        <div class="heroopts" id="heroOpts"></div>
+      </div>
+      <p class="fine" id="heroNote" hidden></p>
+      <div class="row"><button class="btn primary" id="bHeroDone">Done</button><button class="btn" id="bHeroBuy" hidden>Unlock Hero Pack</button><button class="btn" id="bHeroRestore" hidden>Restore purchases</button><button class="btn" id="bHeroReset">Reset</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scrPay" hidden>
+    <div class="panel">
+      <div class="eyebrow">The final movement</div>
+      <h2>The Last Tower</h2>
+      <p class="lede">The Hush itself waits before the last tower. Unlock the final level to face it and finish Taron&#x2019;s journey. Winning opens New Game X.</p>
+      <p class="fine" id="payMsg" hidden></p>
+      <div class="row"><button class="btn primary" id="bPayBuy">Unlock the final level</button><button class="btn" id="bPayRestore">Restore purchases</button><button class="btn" id="bPayBack">Not now</button></div>
+    </div>
+  </section>
+
   <section class="screen" id="scrScores" hidden>
     <div class="panel">
       <div class="eyebrow">Hall of Echoes</div>
@@ -350,7 +392,7 @@ const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML;
 let W = 960; const H = 540, GY = 440; // W widens on touch screens held sideways (see layout)
 const RUN = 270, JUMPV = 730, GRAV = 1900, MAXD = 480, PSX = 380, NOTES_PER_LEVEL = 88;
 const $ = s => document.querySelector(s);
-const cvs = $('#game'), ctx = cvs.getContext('2d');
+const cvs = $('#game'); let ctx = cvs.getContext('2d'); // swapped briefly to draw the hero preview
 const stage = $('#stage'), app = $('#app');
 const FD = '"IM Fell English SC", "IM Fell English", Georgia, serif';
 const FU = '"Alegreya Sans", "Trebuchet MS", sans-serif';
@@ -364,6 +406,92 @@ const SAVE_KEY = 'theLastViolin.v2';
 const save = { unlocked: 1, muted: false, score: 0, maxHp: 10, scroll: false, boots: false, ngx: false, ngxOpen: false };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s) { save.unlocked = clamp(s.unlocked | 0 || 1, 1, 10); save.muted = !!s.muted; save.prologue = !!s.prologue; save.score = Math.max(0, s.score | 0); save.maxHp = clamp(s.maxHp | 0 || 10, 10, 22); save.scroll = !!s.scroll; save.boots = !!s.boots; save.ngx = !!s.ngx; save.ngxOpen = !!s.ngxOpen; save.rot = !!s.rot; } } catch (e) {}
 function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+// ================================================================ hero looks (chosen on the Hero customization screen)
+// paid: part of the Hero Pack in the iPhone app; on the website everything is free
+const LOOK = {
+  outfit: [
+    { id: 'teal', name: 'Teal', c: '#2e7d7a', d: '#1f5655' }, { id: 'crimson', name: 'Crimson', c: '#a3313f', d: '#6e1c28' },
+    { id: 'royal', name: 'Royal blue', c: '#3150a3', d: '#1f3570' }, { id: 'forest', name: 'Forest', c: '#4a7a32', d: '#2f5220' },
+    { id: 'plum', name: 'Plum', c: '#6a3d8a', d: '#45265c' }, { id: 'midnight', name: 'Midnight', c: '#2c2a44', d: '#18172a' },
+    { id: 'ivory', name: 'Ivory and gold', c: '#e2dac4', d: '#c9a24a', paid: 1 }
+  ],
+  scarf: [
+    { id: 'red', name: 'Red', c: '#d23a3a' }, { id: 'gold', name: 'Gold', c: '#e8b830' }, { id: 'violet', name: 'Violet', c: '#8a4fd0' },
+    { id: 'sky', name: 'Sky', c: '#4aa8e0' }, { id: 'emerald', name: 'Emerald', c: '#2fa86a' }, { id: 'snow', name: 'Snow', c: '#eeeef2' }
+  ],
+  hair: [
+    { id: 'brown', name: 'Brown', c: '#2b1b12' }, { id: 'black', name: 'Black', c: '#141118' }, { id: 'blonde', name: 'Blonde', c: '#d9b45a' },
+    { id: 'auburn', name: 'Auburn', c: '#8a3a1c' }, { id: 'silver', name: 'Silver', c: '#c9c9d6' }
+  ],
+  skin: [
+    { id: 's1', name: 'Light', c: '#f2d7b6', d: '#d9bd9c' }, { id: 's2', name: 'Light tan', c: '#e3b98f', d: '#c9a07a' },
+    { id: 's3', name: 'Tan', c: '#c68c5c', d: '#ab7449' }, { id: 's4', name: 'Brown', c: '#94603c', d: '#7c4e30' },
+    { id: 's5', name: 'Dark brown', c: '#5f3b25', d: '#4d2f1d' }
+  ],
+  hat: [
+    { id: 'none', name: 'None' }, { id: 'hood', name: 'Hood' }, { id: 'cap', name: 'Feathered cap' }, { id: 'beret', name: 'Bard beret' },
+    { id: 'wizard', name: 'Wizard hat', paid: 1 }, { id: 'crown', name: 'Crown', paid: 1 }
+  ],
+  finish: [
+    { id: 'classic', name: 'Classic', b: '#e8eef8', g: '#c9a24a', e: 'rgba(140,160,200,0.9)', w1: '#4a2c16', w2: '#8a5a30', v: '#9a5626', v2: '#b8743a', vb: '#8f4f22' },
+    { id: 'ember', name: 'Ember', paid: 1, b: '#ffb36a', g: '#8a2412', e: 'rgba(255,90,40,0.9)', w1: '#4a140c', w2: '#b8402a', v: '#8e2818', v2: '#c0503a', vb: '#7a2214' },
+    { id: 'frost', name: 'Frost', paid: 1, b: '#d8f4ff', g: '#7ab8e0', e: 'rgba(120,200,255,0.9)', w1: '#2a4660', w2: '#7aa8cc', v: '#4f7396', v2: '#86aacb', vb: '#456a8c' },
+    { id: 'shadow', name: 'Shadow', paid: 1, b: '#a58ae0', g: '#3a2450', e: 'rgba(190,140,255,0.9)', w1: '#1c1426', w2: '#4f3a70', v: '#2e1e34', v2: '#5a4466', vb: '#2a1a30' }
+  ]
+};
+const LOOK_DEFAULT = { outfit: 'teal', scarf: 'red', hair: 'brown', skin: 's1', hat: 'none', finish: 'classic' };
+save.look = { ...LOOK_DEFAULT };
+try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.look) for (const k in LOOK_DEFAULT) if (LOOK[k].some(o => o.id === s.look[k])) save.look[k] = s.look[k]; } catch (e) {}
+let heroTry = null; // the look being tried on in the Hero screen (may include items not owned yet)
+const lookOpt = (kind, id) => LOOK[kind].find(o => o.id === id) || LOOK[kind][0];
+function curLook() {
+  const L = heroTry || save.look;
+  const f = k => { const o = lookOpt(k, L[k]); return o.paid && !heroTry && !owned('heropack') ? LOOK[k][0] : o; };
+  return { o: f('outfit'), s: f('scarf'), h: f('hair'), k: f('skin'), hat: f('hat'), f: f('finish') };
+}
+function drawHat(LK, x, y, s) {
+  const id = LK.hat.id; if (id === 'none') return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  if (id === 'hood') {
+    ctx.fillStyle = LK.o.c; ctx.beginPath(); ctx.arc(0, 0, 10.5, Math.PI * 0.55, Math.PI * 1.97); ctx.arc(0, 0, 7.2, Math.PI * 1.97, Math.PI * 0.75, true); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(-17, 3); ctx.lineTo(-8, 5); ctx.fill();
+    ctx.strokeStyle = LK.o.d; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, 7.6, Math.PI * 1.15, Math.PI * 1.95); ctx.stroke();
+  } else if (id === 'cap') {
+    ctx.strokeStyle = LK.s.c; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(-3, -11); ctx.quadraticCurveTo(-10, -22, -19, -20); ctx.stroke();
+    ctx.fillStyle = LK.o.c; ctx.beginPath(); ctx.arc(0, -6, 7.5, Math.PI, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = LK.o.d; ctx.beginPath(); ctx.ellipse(1, -6, 11, 2.8, 0, 0, 7); ctx.fill();
+  } else if (id === 'beret') {
+    ctx.fillStyle = LK.s.c; ctx.beginPath(); ctx.ellipse(-1, -8, 11.5, 4.6, -0.18, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(-7, -5.5, 14, 2);
+    ctx.fillStyle = LK.s.c; ctx.beginPath(); ctx.arc(0, -13, 1.8, 0, 7); ctx.fill();
+  } else if (id === 'wizard') {
+    ctx.fillStyle = '#3b2a6e'; ctx.beginPath(); ctx.moveTo(-8, -7); ctx.lineTo(8, -7); ctx.quadraticCurveTo(2, -20, -12, -31); ctx.quadraticCurveTo(-4, -18, -8, -7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -7, 13, 3, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(-2, -15, 1.4, 0, 7); ctx.arc(-6, -22, 1.1, 0, 7); ctx.fill();
+  } else if (id === 'crown') {
+    ctx.fillStyle = '#f2c14e'; ctx.strokeStyle = '#a8781e'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(-8, -13); ctx.lineTo(-4, -9); ctx.lineTo(0, -15); ctx.lineTo(4, -9); ctx.lineTo(8, -13); ctx.lineTo(8, -5); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#e8384f'; ctx.beginPath(); ctx.arc(0, -8, 1.6, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ================================================================ store
+// The iPhone app provides window.TLV_STORE = { owned(id) -> bool, buy(id) -> Promise<bool>, restore() -> Promise, price(id) -> string }.
+// Products: 'journey' (level 10, The Last Tower) and 'heropack' (paid hero looks). On the website there is no store and nothing is locked.
+// Add ?store=demo to the address to try the purchase screens with pretend purchases.
+const STORE = (() => {
+  if (window.TLV_STORE) return window.TLV_STORE;
+  if (!/[?&]store=demo/.test(location.search)) return null;
+  const KEY = 'theLastViolin.demoOwned'; let got = {}; try { got = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(got)); } catch (e) {} };
+  return { owned: id => !!got[id], price: id => id === 'journey' ? '$2.99' : '$1.99', restore: () => Promise.resolve(),
+    buy: id => Promise.resolve(confirm('Demo purchase (no money is charged): ' + PRODUCTS[id].name + '?')).then(ok => { if (ok) { got[id] = true; keep(); } return ok; }) };
+})();
+const PRODUCTS = { journey: { name: 'The Last Tower' }, heropack: { name: 'Hero Pack' } };
+const owned = id => { try { return !STORE || !!STORE.owned(id); } catch (e) { return false; } };
+const priceOf = id => { try { return (STORE && STORE.price && STORE.price(id)) || ''; } catch (e) { return ''; } };
+
 
 // ================================================================ audio
 let AC = null, master, revSend, droneGain, noiseBuf;
@@ -725,6 +853,7 @@ function groundBelow(L, x, y) {
   return best;
 }
 function startLevel(i) {
+  if (i === 9 && !owned('journey')) { showPaywall(); return false; }
   initAudio();
   run.score = run.base; run.maxHp = run.maxHp0; run.scroll = run.pw0[0]; run.boots = run.pw0[1];
   setupLevel(i);
@@ -733,7 +862,7 @@ function startLevel(i) {
   setDrone(true);
 }
 function startAtArena(i, ck) {
-  startLevel(i);
+  if (startLevel(i) === false) return;
   G.notes.forEach(n => { if (ck.got.includes(n.id)) n.got = true; });
   G.count = ck.count; G.banner = 0; if (ck.score !== undefined) run.score = ck.score;
   for (const h of G.hearts) if (h.x < G.arena.x0) h.got = true;
@@ -825,7 +954,8 @@ function trySafe() {
 // ================================================================ player
 const SONG_T = 1.6;
 const WEAPONS = ['sword', 'staff', 'orbstaff', 'violin'];
-const weapon = () => run.ngx ? 'violin' : WEAPONS[Math.min(3, Math.floor(lvlIdx / 3) + (G.gotWeapon ? 1 : 0))];
+let previewWeapon = null; // the Hero customization preview shows a chosen weapon
+const weapon = () => previewWeapon || (run.ngx ? 'violin' : WEAPONS[Math.min(3, Math.floor(lvlIdx / 3) + (G.gotWeapon ? 1 : 0))]);
 const REWARDS = {
   staff: ['You got the Staff of Sirea!', 'Swing it like a sword. Every third swing also hurls a fireball.'],
   orb: ['You got the Orb of Melodia!', 'It joins your Staff of Sirea and turns it gold. Now every swing also fires a golden bolt.'],
@@ -1883,14 +2013,15 @@ function drawPlayer() {
   ctx.save();
   if (blink) ctx.globalAlpha *= 0.3;
   ctx.translate(P.x + P.w / 2, P.y + P.h); ctx.scale(P.face, 1);
-  const ink = '#140f1c';
+  const ink = '#140f1c', LK = curLook();
   if (P.h < 56) {
     ctx.strokeStyle = ink; ctx.lineWidth = 5;
     ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(16, -3); ctx.moveTo(-2, -4); ctx.lineTo(14, 0); ctx.stroke();
-    ctx.fillStyle = '#2e7d7a'; ctx.beginPath(); ctx.ellipse(-8, -11, 13, 7, -0.35, 0, 7); ctx.fill();
-    ctx.fillStyle = '#d23a3a'; ctx.beginPath(); ctx.moveTo(-16, -16); ctx.quadraticCurveTo(-28, -18, -36, -12 + Math.sin(G.t * 30) * 2); ctx.lineTo(-30, -9); ctx.fill();
-    ctx.fillStyle = '#f2d7b6'; ctx.beginPath(); ctx.arc(-18, -18, 7, 0, 7); ctx.fill();
-    ctx.fillStyle = '#2b1b12'; ctx.beginPath(); ctx.arc(-20, -20, 7, Math.PI * 0.9, Math.PI * 2.0); ctx.fill();
+    ctx.fillStyle = LK.o.c; ctx.beginPath(); ctx.ellipse(-8, -11, 13, 7, -0.35, 0, 7); ctx.fill();
+    ctx.fillStyle = LK.s.c; ctx.beginPath(); ctx.moveTo(-16, -16); ctx.quadraticCurveTo(-28, -18, -36, -12 + Math.sin(G.t * 30) * 2); ctx.lineTo(-30, -9); ctx.fill();
+    ctx.fillStyle = LK.k.c; ctx.beginPath(); ctx.arc(-18, -18, 7, 0, 7); ctx.fill();
+    ctx.fillStyle = LK.h.c; ctx.beginPath(); ctx.arc(-20, -20, 7, Math.PI * 0.9, Math.PI * 2.0); ctx.fill();
+    drawHat(LK, -18, -18, 0.88);
     drawDuckWeapon();
   } else {
     const run = P.ground && Math.abs(P.vx) > 20, ph = P.runT * 13;
@@ -1901,19 +2032,20 @@ function drawPlayer() {
     ctx.strokeStyle = ink; ctx.lineWidth = 5.5;
     for (const a of [a2, a1]) { ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(Math.sin(a) * 12, -12); ctx.lineTo(Math.sin(a) * 20 - (P.ground ? 0 : 4), P.ground ? 0 : -6); ctx.stroke(); }
     if (hasBoots()) { ctx.strokeStyle = '#e8b830'; ctx.lineWidth = 6; for (const a of [a2, a1]) { const fx = Math.sin(a) * 20 - (P.ground ? 0 : 4), fy = P.ground ? 0 : -6, kx = Math.sin(a) * 12; ctx.beginPath(); ctx.moveTo(fx + (kx - fx) * 0.45, fy + (-12 - fy) * 0.45); ctx.lineTo(fx, fy); ctx.lineTo(fx + 5, fy); ctx.stroke(); } ctx.strokeStyle = ink; }
-    if (!P.violin) { ctx.save(); ctx.translate(-10, -36); ctx.rotate(-0.5); ctx.fillStyle = '#8f4f22'; ctx.beginPath(); ctx.ellipse(0, 0, 5, 11, 0, 0, 7); ctx.fill(); ctx.strokeStyle = '#3b1f0c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, -19); ctx.stroke(); ctx.restore(); }
-    ctx.fillStyle = '#2e7d7a';
+    if (!P.violin && weapon() !== 'violin') { ctx.save(); ctx.translate(-10, -36); ctx.rotate(-0.5); ctx.fillStyle = curLook().f.vb; ctx.beginPath(); ctx.ellipse(0, 0, 5, 11, 0, 0, 7); ctx.fill(); ctx.strokeStyle = '#3b1f0c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, -19); ctx.stroke(); ctx.restore(); }
+    ctx.fillStyle = LK.o.c;
     ctx.beginPath(); ctx.moveTo(-8, -45); ctx.lineTo(8, -45); ctx.lineTo(12, -19); ctx.lineTo(-12, -19); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#1f5655'; ctx.fillRect(-12, -23, 24, 4);
+    ctx.fillStyle = LK.o.d; ctx.fillRect(-12, -23, 24, 4);
     ctx.fillStyle = '#e0b84e'; ctx.fillRect(-1, -44, 2, 22);
     const wv = Math.sin(G.t * 12) * 3;
-    ctx.fillStyle = '#d23a3a';
+    ctx.fillStyle = LK.s.c;
     ctx.beginPath(); ctx.moveTo(-6, -46); ctx.lineTo(7, -46); ctx.lineTo(6, -41); ctx.lineTo(-6, -41); ctx.fill();
     ctx.beginPath(); ctx.moveTo(-5, -45); ctx.quadraticCurveTo(-16, -44 + wv, -24, -38 + wv); ctx.lineTo(-20, -35 + wv); ctx.quadraticCurveTo(-12, -40, -4, -41); ctx.fill();
-    ctx.fillStyle = '#f2d7b6'; ctx.beginPath(); ctx.arc(1, -52, 8, 0, 7); ctx.fill();
-    ctx.fillStyle = '#2b1b12'; ctx.beginPath(); ctx.arc(0, -54, 8.5, Math.PI * 0.85, Math.PI * 2.05); ctx.fill();
+    ctx.fillStyle = LK.k.c; ctx.beginPath(); ctx.arc(1, -52, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = LK.h.c; ctx.beginPath(); ctx.arc(0, -54, 8.5, Math.PI * 0.85, Math.PI * 2.05); ctx.fill();
     ctx.beginPath(); ctx.moveTo(-7, -54); ctx.quadraticCurveTo(-14, -50, -12, -44); ctx.lineTo(-8, -48); ctx.fill();
     ctx.fillStyle = ink; ctx.fillRect(4, -53, 2, 2.4);
+    drawHat(LK, 1, -52, 1);
     if (P.raise) { }
     else if (P.violin) drawViolinPose();
     else {
@@ -1944,20 +2076,20 @@ function drawSword(x, y, ang, swinging) {
     ctx.beginPath(); ctx.arc(0, 0, 50, -2.0, cur); ctx.arc(0, 0, 22, cur, -2.0, true); ctx.fill();
   }
   ctx.rotate(ang);
-  ctx.strokeStyle = '#f2d7b6'; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(11, 0); ctx.stroke();
-  ctx.strokeStyle = '#c9a24a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(13, -6); ctx.lineTo(13, 6); ctx.stroke();
-  ctx.strokeStyle = '#e8eef8'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(46, 0); ctx.stroke();
-  ctx.strokeStyle = 'rgba(140,160,200,0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(15, 1.2); ctx.lineTo(44, 1.2); ctx.stroke();
+  ctx.strokeStyle = curLook().k.c; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(11, 0); ctx.stroke();
+  ctx.strokeStyle = curLook().f.g; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(13, -6); ctx.lineTo(13, 6); ctx.stroke();
+  ctx.strokeStyle = curLook().f.b; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(46, 0); ctx.stroke();
+  ctx.strokeStyle = curLook().f.e; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(15, 1.2); ctx.lineTo(44, 1.2); ctx.stroke();
   ctx.restore();
 }
 function drawViolinPose() {
   if (storyPose) { drawRealFiddle(G.t, storyPose.still); return; }
   const bow = Math.sin((tw.phase === 'play' ? tw.t : G.t * 0.6) * 9) * 9;
   ctx.save(); ctx.translate(8, -42); ctx.rotate(0.45);
-  ctx.fillStyle = '#9a5626'; ctx.beginPath(); ctx.ellipse(6, 0, 12, 5.5, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = curLook().f.v; ctx.beginPath(); ctx.ellipse(6, 0, 12, 5.5, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = '#3b1f0c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(28, 0); ctx.stroke();
   ctx.restore();
-  ctx.strokeStyle = '#f2d7b6'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(2, -40); ctx.lineTo(14 + bow * 0.4, -30); ctx.stroke();
+  ctx.strokeStyle = curLook().k.c; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(2, -40); ctx.lineTo(14 + bow * 0.4, -30); ctx.stroke();
   ctx.strokeStyle = '#e7dcc4'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-6 + bow, -26); ctx.lineTo(26 + bow, -46); ctx.stroke();
 }
 // ---------- enemies
@@ -2301,28 +2433,28 @@ function drawWeapon(ang) {
     const swinging = P.swing > 0, gold = w === 'orbstaff';
     if (!swinging) {
       // held upright at the side
-      ctx.strokeStyle = '#f2d7b6'; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(2, -40); ctx.lineTo(12, -30); ctx.stroke();
+      ctx.strokeStyle = curLook().k.c; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(2, -40); ctx.lineTo(12, -30); ctx.stroke();
       ctx.save(); ctx.translate(13, -30); ctx.rotate(-Math.PI / 2 + 0.06 + Math.sin(G.t * 2) * 0.02);
       drawStaffBody(gold); ctx.restore(); return;
     }
     ctx.save(); ctx.translate(2, -40);
     if (swordActive()) { const p = 1 - P.swing / 0.28, e = 1 - Math.pow(1 - p, 3), cur = -2.2 + e * 3.1; ctx.fillStyle = gold ? 'rgba(255,220,90,0.35)' : 'rgba(255,170,90,0.3)'; ctx.beginPath(); ctx.arc(0, 0, 52, -2.0, cur); ctx.arc(0, 0, 22, cur, -2.0, true); ctx.fill(); }
     ctx.rotate(ang);
-    ctx.strokeStyle = '#f2d7b6'; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(11, 0); ctx.stroke();
+    ctx.strokeStyle = curLook().k.c; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(11, 0); ctx.stroke();
     ctx.translate(11, 0); drawStaffBody(gold); ctx.restore(); return;
   }
   // violin at the ready
   ctx.save(); ctx.translate(6, -34); ctx.rotate(0.9);
   if (!plainViolin) { const g = ctx.createRadialGradient(6, 0, 2, 6, 0, 22); g.addColorStop(0, `rgba(255,214,90,${0.35 + 0.15 * Math.sin(G.t * 4)})`); g.addColorStop(1, 'rgba(255,214,90,0)'); ctx.fillStyle = g; ctx.fillRect(-16, -22, 44, 44); }
-  ctx.fillStyle = plainViolin ? '#9a5626' : '#e0a830'; ctx.beginPath(); ctx.ellipse(6, 0, 11, 5, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = plainViolin ? curLook().f.v : '#e0a830'; ctx.beginPath(); ctx.ellipse(6, 0, 11, 5, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = '#3b1f0c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(26, 0); ctx.stroke();
   ctx.restore();
   ctx.strokeStyle = '#e7dcc4'; ctx.lineWidth = 1.6; ctx.beginPath(); const fl = P.swing > 0 ? -14 : 0; ctx.moveTo(-4, -26 + fl); ctx.lineTo(24, -44 + fl); ctx.stroke();
 }
 function drawStaffBody(gold) {
   // local axis: +x runs toward the crystal end
-  ctx.strokeStyle = '#4a2c16'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(40, 0); ctx.stroke();
-  ctx.strokeStyle = '#8a5a30'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-24, -1); ctx.lineTo(38, -1); ctx.stroke();
+  ctx.strokeStyle = curLook().f.w1; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(40, 0); ctx.stroke();
+  ctx.strokeStyle = curLook().f.w2; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-24, -1); ctx.lineTo(38, -1); ctx.stroke();
   ctx.strokeStyle = '#c9a24a'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(38, 0); ctx.quadraticCurveTo(46, -9, 52, -3); ctx.moveTo(38, 0); ctx.quadraticCurveTo(46, 9, 52, 3); ctx.stroke();
   if (gold) { ctx.save(); ctx.translate(48, 0); drawGoldOrb(7 + Math.sin(G.t * 5) * 0.6); ctx.restore(); return; }
@@ -2654,11 +2786,11 @@ function drawRealFiddle(t, still) {
   const s = still ? 0 : 12.5 * Math.sin(t * 2.5);
   const vib = still ? 0 : Math.sin(t * 34) * 0.6;
   // far arm holds the neck
-  ctx.strokeStyle = '#d9bd9c'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-3, -43); ctx.quadraticCurveTo(14, -28, 27 + vib, -37); ctx.stroke();
+  ctx.strokeStyle = curLook().k.d; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-3, -43); ctx.quadraticCurveTo(14, -28, 27 + vib, -37); ctx.stroke();
   // violin under the chin, pointing forward and a little down
   ctx.save(); ctx.translate(2, -43); ctx.rotate(0.22);
-  ctx.fillStyle = '#9a5626'; ctx.beginPath(); ctx.ellipse(8, 0, 11.5, 5.5, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = '#b8743a'; ctx.beginPath(); ctx.ellipse(6, -1.4, 6, 2, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = curLook().f.v; ctx.beginPath(); ctx.ellipse(8, 0, 11.5, 5.5, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = curLook().f.v2; ctx.beginPath(); ctx.ellipse(6, -1.4, 6, 2, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = '#3b1f0c'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(18, 0); ctx.lineTo(31, 0); ctx.stroke();
   ctx.fillStyle = '#3b1f0c'; ctx.beginPath(); ctx.arc(32.5, 0, 2.6, 0, 7); ctx.fill();
   ctx.strokeStyle = 'rgba(245,235,205,0.75)'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(-1, -0.8); ctx.lineTo(31, -0.8); ctx.moveTo(-1, 0.8); ctx.lineTo(31, 0.8); ctx.stroke();
@@ -2672,8 +2804,8 @@ function drawRealFiddle(t, still) {
   ctx.fillStyle = '#2a1a10'; ctx.fillRect(fx - 1.5, fy - 2, 4, 4);
   // bow arm: shoulder, elbow, hand on the frog
   const sx = -1, sy = -42, ex = (sx + fx) / 2 - 8, ey = (sy + fy) / 2 + 4;
-  ctx.strokeStyle = '#f2d7b6'; ctx.lineWidth = 4.2; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.lineTo(fx, fy); ctx.stroke();
-  ctx.fillStyle = '#f2d7b6'; ctx.beginPath(); ctx.arc(fx, fy, 2.8, 0, 7); ctx.fill();
+  ctx.strokeStyle = curLook().k.c; ctx.lineWidth = 4.2; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.lineTo(fx, fy); ctx.stroke();
+  ctx.fillStyle = curLook().k.c; ctx.beginPath(); ctx.arc(fx, fy, 2.8, 0, 7); ctx.fill();
 }
 
 // ================================================================ arena platforms that move or crumble
@@ -2994,11 +3126,11 @@ function drawDuckWeapon() {
   if (w === 'sword') { drawSword(-2, -14, -0.25, false); return; }
   if (w === 'staff' || w === 'orbstaff') {
     ctx.save(); ctx.translate(-4, -12); ctx.rotate(-0.12); ctx.scale(0.85, 0.85); drawStaffBody(w === 'orbstaff'); ctx.restore();
-    ctx.strokeStyle = '#f2d7b6'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-14, -14); ctx.lineTo(-2, -12); ctx.stroke();
+    ctx.strokeStyle = curLook().k.c; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-14, -14); ctx.lineTo(-2, -12); ctx.stroke();
     return;
   }
   ctx.save(); ctx.translate(-4, -15); ctx.rotate(-0.12);
-  ctx.fillStyle = '#9a5626'; ctx.beginPath(); ctx.ellipse(0, 0, 11, 5, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = curLook().f.v; ctx.beginPath(); ctx.ellipse(0, 0, 11, 5, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = '#3b1f0c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(22, 0); ctx.stroke();
   ctx.restore();
   ctx.strokeStyle = '#e7dcc4'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-18, -8); ctx.lineTo(14, -10); ctx.stroke();
@@ -3498,7 +3630,7 @@ function drawHUD() {
 }
 
 // ================================================================ UI / screens
-const screens = ['scrTitle', 'scrHow', 'scrPause', 'scrOver', 'scrDone', 'scrWin', 'scrScores', 'scrTest'];
+const screens = ['scrTitle', 'scrHow', 'scrPause', 'scrOver', 'scrDone', 'scrWin', 'scrScores', 'scrTest', 'scrHero', 'scrPay'];
 $('#story').addEventListener('click', e => { if (e.target.id === 'storySkip') return; nextSlide(); });
 $('#storySkip').onclick = e => { e.stopPropagation(); endStory(); };
 
@@ -3540,7 +3672,7 @@ function setMuted(m) { save.muted = m; persist(); if (AC) master.gain.setTargetA
 function beginRun(ngx) { SFX.click(); window.__tlv.god = false; save.unlocked = 1; save.score = 0; save.maxHp = 10; save.ngx = !!ngx; save.scroll = save.boots = !!ngx; persist(); newRun(false, ngx); startStory('pro', () => startLevel(0)); }
 $('#bNew').onclick = () => beginRun(false);
 $('#bNGX').onclick = () => beginRun(true);
-$('#bPlay').onclick = () => { SFX.click(); window.__tlv.god = false; newRun(save.unlocked > 1); startStory('pro', () => startLevel(Math.min(save.unlocked, 10) - 1)); };
+$('#bPlay').onclick = () => { SFX.click(); window.__tlv.god = false; if (save.unlocked >= 10 && !owned('journey')) { newRun(true); showPaywall(); return; } newRun(save.unlocked > 1); startStory('pro', () => startLevel(Math.min(save.unlocked, 10) - 1)); };
 $('#bScores').onclick = () => { initAudio(); renderScores(loadScores(), $('#hsTable'), -1); showScreen('scrScores'); };
 $('#bScoresBack').onclick = () => showScreen('scrTitle');
 $('#hsSave').onclick = submitScore;
@@ -3561,6 +3693,86 @@ $('#bWinTitle').onclick = toTitle;
 $('#btnPause').onclick = () => { initAudio(); togglePause(); };
 $('#btnMute').onclick = () => { initAudio(); setMuted(!save.muted); };
 $('#btnViolin').onclick = playViolin;
+
+
+// ================================================================ hero customization screen
+const HERO_GROUPS = [['outfit', 'Outfit', 'sw'], ['scarf', 'Scarf', 'sw'], ['hair', 'Hair', 'sw'], ['skin', 'Skin', 'sw'], ['hat', 'Headwear', 'chip'], ['finish', 'Weapon finish', 'chip']];
+let heroWeap = 'sword', heroRAF = 0;
+function heroLocked(o) { return !!o.paid && !owned('heropack'); }
+function renderHero() {
+  const box = $('#heroOpts'); box.innerHTML = '';
+  for (const [kind, label, style] of HERO_GROUPS) {
+    const g = document.createElement('div'); g.className = 'og';
+    const l = document.createElement('span'); l.textContent = label; const row = document.createElement('div');
+    for (const o of LOOK[kind]) {
+      const b = document.createElement('button'); b.type = 'button';
+      b.className = style + (heroTry[kind] === o.id ? ' on' : '') + (heroLocked(o) ? ' lock' : '');
+      b.title = o.name + (heroLocked(o) ? ' (Hero Pack)' : ''); b.setAttribute('aria-label', b.title); b.setAttribute('aria-pressed', heroTry[kind] === o.id);
+      if (style === 'sw') b.style.background = kind === 'outfit' ? `linear-gradient(180deg, ${o.c} 62%, ${o.d} 62%)` : o.c; else b.textContent = o.name;
+      b.onclick = () => { SFX.click(); heroTry[kind] = o.id; if (!heroLocked(o)) save.look[kind] = o.id; persist(); renderHero(); };
+      row.appendChild(b);
+    }
+    g.append(l, row); box.appendChild(g);
+  }
+  const wrow = $('#heroWeap'); wrow.innerHTML = '';
+  for (const [id, name] of [['sword', 'Sword'], ['staff', 'Staff'], ['violin', 'Violin']]) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (heroWeap === id ? ' on' : ''); b.textContent = name;
+    b.onclick = () => { SFX.click(); heroWeap = id; renderHero(); }; wrow.appendChild(b);
+  }
+  const trying = HERO_GROUPS.map(([k]) => lookOpt(k, heroTry[k])).filter(heroLocked);
+  const note = $('#heroNote');
+  note.hidden = !trying.length;
+  note.textContent = trying.length ? 'Trying on ' + trying.map(o => o.name).join(', ') + '. ' + (trying.length > 1 ? 'These are' : 'This is') + ' part of the Hero Pack' + (priceOf('heropack') ? ' (' + priceOf('heropack') + ')' : '') + '. Unlock it to keep ' + (trying.length > 1 ? 'them' : 'it') + '.' : '';
+  $('#bHeroBuy').hidden = !STORE || owned('heropack');
+  $('#bHeroRestore').hidden = !STORE || owned('heropack');
+}
+function drawHeroPreview() {
+  if ($('#scrHero').hidden) { heroRAF = 0; return; }
+  const c = $('#heroCvs'), g = c.getContext('2d'), Wc = c.width, Hc = c.height;
+  const sky = g.createLinearGradient(0, 0, 0, Hc); sky.addColorStop(0, '#0e0b1f'); sky.addColorStop(0.7, '#2b2045'); sky.addColorStop(1, '#4f3660');
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = sky; g.fillRect(0, 0, Wc, Hc);
+  const glow = g.createRadialGradient(Wc / 2, Hc * 0.55, 10, Wc / 2, Hc * 0.55, Wc * 0.55); glow.addColorStop(0, 'rgba(242,193,78,0.22)'); glow.addColorStop(1, 'rgba(242,193,78,0)');
+  g.fillStyle = glow; g.fillRect(0, 0, Wc, Hc);
+  g.fillStyle = '#2c2639'; g.fillRect(0, Hc - 70, Wc, 70); g.fillStyle = '#7f9468'; g.fillRect(0, Hc - 70, Wc, 8);
+  const saved = { ctx, t: G.t, swing: P.swing, gw: G.gotWeapon };
+  ctx = g; G.t = performance.now() / 1000; previewWeapon = heroWeap; plainViolin = true; // plain violin shows the weapon finish
+  try { taronAt(Wc / 2 - 6, Hc - 70, 5.4, { walk: true }); }
+  finally { ctx = saved.ctx; G.t = saved.t; previewWeapon = null; plainViolin = false; }
+  heroRAF = requestAnimationFrame(drawHeroPreview);
+}
+function openHero() {
+  initAudio(); heroTry = { ...save.look }; renderHero(); showScreen('scrHero');
+  if (!heroRAF) heroRAF = requestAnimationFrame(drawHeroPreview);
+}
+function closeHero() { heroTry = null; showScreen('scrTitle'); }
+function buyThen(id, done, msgEl) {
+  if (!STORE) return;
+  if (msgEl) { msgEl.hidden = false; msgEl.textContent = 'Connecting to the App Store…'; }
+  Promise.resolve(STORE.buy(id)).then(ok => { if (msgEl) msgEl.hidden = true; if (ok) { SFX.chime(); done(); } })
+    .catch(() => { if (msgEl) { msgEl.hidden = false; msgEl.textContent = 'The purchase did not go through. Please try again.'; } });
+}
+function restoreThen(done, msgEl) {
+  if (!STORE) return;
+  if (msgEl) { msgEl.hidden = false; msgEl.textContent = 'Restoring purchases…'; }
+  Promise.resolve(STORE.restore()).then(() => { if (msgEl) msgEl.textContent = 'Purchases restored.'; done(); })
+    .catch(() => { if (msgEl) msgEl.textContent = 'Could not restore purchases. Please try again.'; });
+}
+$('#bHero').onclick = () => { SFX.click(); openHero(); };
+$('#bHeroDone').onclick = () => { SFX.click(); closeHero(); };
+$('#bHeroReset').onclick = () => { SFX.click(); save.look = { ...LOOK_DEFAULT }; heroTry = { ...LOOK_DEFAULT }; persist(); renderHero(); };
+$('#bHeroBuy').onclick = () => buyThen('heropack', () => { for (const k in heroTry) save.look[k] = heroTry[k]; persist(); renderHero(); }, $('#heroNote'));
+$('#bHeroRestore').onclick = () => restoreThen(() => { if (owned('heropack')) for (const k in heroTry) save.look[k] = heroTry[k]; persist(); renderHero(); }, $('#heroNote'));
+
+// level 10 paywall (only in the iPhone app, or with ?store=demo)
+function showPaywall() {
+  state = 'title'; setDrone(false);
+  const p = priceOf('journey'); $('#bPayBuy').textContent = 'Unlock the final level' + (p ? ' · ' + p : '');
+  $('#payMsg').hidden = true; showScreen('scrPay');
+}
+const payGo = () => { if (owned('journey')) startLevel(9); };
+$('#bPayBuy').onclick = () => buyThen('journey', payGo, $('#payMsg'));
+$('#bPayRestore').onclick = () => restoreThen(payGo, $('#payMsg'));
+$('#bPayBack').onclick = () => { SFX.click(); toTitle(); };
 
 // ================================================================ hidden teacher test menu (type "crescendo" on the title screen)
 let secret = '';
