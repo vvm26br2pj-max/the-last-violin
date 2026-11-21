@@ -173,6 +173,8 @@ kbd.k{font:700 12px/1 var(--ui);border:1px solid #6b5a8f;background:#1b1429;bord
 #heroNote{color:var(--gold)}
 @media (max-width:560px){.herobox{grid-template-columns:1fr}.heroprev{position:static}#heroCvs{max-width:170px}}
 @media (max-height:560px){.herobox{grid-template-columns:minmax(130px,190px) 1fr}#heroCvs{max-width:190px}.sw{width:30px;height:30px}.chip{padding:7px 10px;min-height:32px;font-size:13px}.heroopts{gap:7px}}
+#app[data-pad="1"] #controls{display:none}
+.pf{outline:3px solid var(--gold)!important;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){#btnViolin{animation:none}}
 @media (max-height:560px){
   .screen{padding:10px 14px}
@@ -246,15 +248,15 @@ html.touch .btn{min-height:44px}
       <h2>How to play</h2>
       <div class="scroll">
       <table class="keys">
-        <thead><tr><th>Action</th><th>Keyboard</th><th>On screen</th></tr></thead>
+        <thead><tr><th>Action</th><th>Keyboard</th><th>On screen</th><th>Controller</th></tr></thead>
         <tbody>
-          <tr><td>Move</td><td><kbd class="k">&#x2190;</kbd> <kbd class="k">&#x2192;</kbd></td><td>Arrow buttons</td></tr>
-          <tr><td>Jump</td><td><kbd class="k">&#x2191;</kbd></td><td>Jump</td></tr>
-          <tr><td>Slide</td><td><kbd class="k">&#x2193;</kbd></td><td>Slide</td></tr>
-          <tr><td>Attack</td><td><kbd class="k">Space</kbd></td><td>Attack</td></tr>
-          <tr><td>Consonance shield (after level 5)</td><td><kbd class="k">C</kbd></td><td>Shield</td></tr>
-          <tr><td>Play violin at a tower</td><td><kbd class="k">E</kbd></td><td>Play Violin</td></tr>
-          <tr><td>Pause / Mute</td><td><kbd class="k">Esc</kbd> / <kbd class="k">M</kbd></td><td>Top-right buttons</td></tr>
+          <tr><td>Move</td><td><kbd class="k">&#x2190;</kbd> <kbd class="k">&#x2192;</kbd></td><td>Joystick</td><td>Left stick / D-pad</td></tr>
+          <tr><td>Jump</td><td><kbd class="k">&#x2191;</kbd></td><td>Jump</td><td>A</td></tr>
+          <tr><td>Slide</td><td><kbd class="k">&#x2193;</kbd></td><td>Slide</td><td>B or stick down</td></tr>
+          <tr><td>Attack</td><td><kbd class="k">Space</kbd></td><td>Attack</td><td>X or R</td></tr>
+          <tr><td>Consonance shield (after level 5)</td><td><kbd class="k">C</kbd></td><td>Shield</td><td>Y</td></tr>
+          <tr><td>Play violin at a tower</td><td><kbd class="k">E</kbd></td><td>Play Violin</td><td>A or X</td></tr>
+          <tr><td>Pause / Mute</td><td><kbd class="k">Esc</kbd> / <kbd class="k">M</kbd></td><td>Top-right buttons</td><td>Menu / Start</td></tr>
         </tbody>
       </table>
       </div>
@@ -271,6 +273,7 @@ html.touch .btn{min-height:44px}
         <li><b>Falling spikes</b> shake before they drop. <b>Webs</b> hold you for two seconds. <b>Iron balls</b> can be passed by sliding.</li>
         <li><b>A guardian</b> blocks the way before every tower. Watch for its warning glow, then strike. Some can only be hurt at certain moments.</li>
         <li><b>On a phone or tablet</b>, hold the arrow and jump buttons at the same time to run and jump. Turning the device sideways gives the biggest view.</li>
+        <li><b>Controllers</b> (Xbox, PlayStation, or any controller made for iPhone) work too. The on-screen buttons hide while you use one; touch the screen to bring them back. In menus, move with the D-pad or stick, press A to choose and B to go back.</li>
         <li><b>Hold &#x2192; for 3 seconds</b> to run automatically. Press &#x2190; to stop.</li>
       </ul>
       <div class="row"><button class="btn primary" data-back>Got it</button></div>
@@ -784,10 +787,10 @@ const G = {};
 const P = {};
 const M = { x: 0, anim: 0, blink: 0, blinkT: 2, weak: 0, dissolve: 0, hit: 0, delay: 0, recoil: 0, stun: 0, lost: 0, losing: 0 };
 const cam = { x: 0, y: 0 };
-const keys = {}, touch = {};
+const keys = {}, touch = {}, pad = {}; // pad: held actions from a game controller
 let jumpBuf = 0, slideReq = 0, swingReq = 0;
 const tw = { phase: null, t: 0, events: [], idx: 0, total: 0, w0: 0, w1: 0, hits: 0 };
-const held = a => !!(keys[a] || touch[a]);
+const held = a => !!(keys[a] || touch[a] || pad[a]);
 // one playthrough: score and heart count carry from level to level
 const run = { score: 0, base: 0, maxHp: 10, maxHp0: 10, cheat: false, scroll: false, boots: false, pw0: [false, false], ngx: false };
 function newRun(fromSave, ngx) {
@@ -920,7 +923,7 @@ function hurt(n, kind) {
   if (P.shield > 0 && kind !== 'pit' && kind !== 'lava') return false;
   P.hp = Math.max(0, P.hp - n); P.inv = 1.5; P.auto = false; P.rightT = 0; run.score = Math.max(0, run.score - 5 * n);
   G.shake = Math.max(G.shake, 0.32); G.flash = 0.3;
-  SFX.hurt();
+  SFX.hurt(); padRumble(0.22, 0.7);
   popText(P.x + P.w / 2, P.y - 10, n === 1 ? '\u2212\u00bd \u2665' : '\u22121 \u2665', '#ff7a7a');
   if (P.hp <= 0) { P.dead = true; state = 'dying'; G.deadT = 1.4; setDrone(false); SFX.growl(); }
   return true;
@@ -3880,6 +3883,75 @@ if (TOUCH) {
   document.querySelectorAll('.storybar span:nth-child(2)').forEach(s => s.textContent = 'Tap to continue');
 }
 
+
+// ================================================================ game controllers (Gamepad API: Xbox, PlayStation, MFi)
+// standard mapping: A=0 B=1 X=2 Y=3 LB=4 RB=5 Back=8 Start/Menu=9 D-pad=12..15, left stick = axes 0/1
+let padPrev = {}, padUsed = false, padRepeat = 0, padGp = null;
+const PAD_BACK = { scrHow: '[data-back]', scrPause: '#bResume', scrScores: '#bScoresBack', scrHero: '#bHeroDone', scrPay: '#bPayBack', scrTest: '#tBack' };
+function padRumble(dur, mag) {
+  try { const v = padGp && padGp.vibrationActuator; if (v && v.playEffect) v.playEffect('dual-rumble', { duration: dur * 1000, strongMagnitude: mag, weakMagnitude: mag * 0.6 }); } catch (e) {}
+}
+function setPadUsed(on) { if (padUsed === on) return; padUsed = on; app.dataset.pad = on ? '1' : ''; layout(); }
+addEventListener('pointerdown', e => { if (e.pointerType === 'touch') setPadUsed(false); }, { capture: true, passive: true });
+function activeScreen() { for (const id of screens) { const el = $('#' + id); if (!el.hidden) return el; } return null; }
+function padFocusables(scr) { return [...scr.querySelectorAll('button, input, [role="slider"]')].filter(el => !el.hidden && !el.disabled && el.offsetParent !== null && el.id !== 'joy'); }
+function padFocus(el) { document.querySelectorAll('.pf').forEach(e => e.classList.remove('pf')); if (!el) return; el.classList.add('pf'); el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }); }
+function padMove(scr, dx, dy) {
+  const list = padFocusables(scr); if (!list.length) return;
+  const cur = list.includes(document.activeElement) ? document.activeElement : null;
+  if (!cur) { padFocus(scr.querySelector('.btn.primary:not([hidden])') || list[0]); return; }
+  const r = cur.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  let best = null, bestS = Infinity;
+  for (const el of list) {
+    if (el === cur) continue;
+    const q = el.getBoundingClientRect(), ex = q.left + q.width / 2 - cx, ey = q.top + q.height / 2 - cy;
+    const along = ex * dx + ey * dy, across = Math.abs(ex * dy - ey * dx);
+    if (along <= 4) continue;
+    const sc = along + across * 2.5; if (sc < bestS) { bestS = sc; best = el; }
+  }
+  if (best) { padFocus(best); SFX.click(); }
+}
+function pollPad(dt) {
+  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+  let gp = null; for (const g of gps || []) if (g && g.connected) { gp = g; break; }
+  padGp = gp;
+  if (!gp) { for (const k in pad) pad[k] = false; padPrev = {}; return; }
+  const b = i => !!(gp.buttons[i] && (gp.buttons[i].pressed || gp.buttons[i].value > 0.5));
+  const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+  const now = { left: b(14) || ax < -0.45, right: b(15) || ax > 0.45, up: b(12) || ay < -0.6, down: b(13) || ay > 0.6,
+    A: b(0), B: b(1), X: b(2), Y: b(3), RB: b(5), RT: b(7), start: b(9) };
+  const hit = k => now[k] && !padPrev[k];
+  if (Object.keys(now).some(k => now[k])) { if (!padUsed) setPadUsed(true); initAudio(); }
+  // gameplay: held actions plus a press on the first frame of each button
+  const act = { left: now.left, right: now.right, jump: now.A, slide: now.B || now.down, sword: now.X || now.RB || now.RT, cons: now.Y };
+  const was = { left: padPrev.left, right: padPrev.right, jump: padPrev.A, slide: padPrev.B || padPrev.down, sword: padPrev.X || padPrev.RB || padPrev.RT, cons: padPrev.Y };
+  if (inGame() && state !== 'dying') for (const a in act) if (act[a] && !was[a]) press(a);
+  for (const a in act) pad[a] = inGame() && act[a];
+  if (hit('start')) {
+    if (state === 'story') endStory();
+    else if (state === 'play' || state === 'tower' || state === 'paused') togglePause();
+  }
+  if (state === 'story') { if (hit('A') || hit('right')) nextSlide(); padPrev = now; return; }
+  if (state === 'reward') { if (hit('A') || hit('X')) endReward(); padPrev = now; return; }
+  if (state === 'tower' && (hit('A') || hit('X'))) playViolin();
+  // menus: D-pad / stick moves between buttons, A chooses, B goes back
+  const scr = activeScreen();
+  if (scr && !inGame()) {
+    const dir = now.left ? [-1, 0] : now.right ? [1, 0] : now.up ? [0, -1] : now.down ? [0, 1] : null;
+    const fresh = hit('left') || hit('right') || hit('up') || hit('down');
+    padRepeat -= dt;
+    if (dir && (fresh || padRepeat <= 0)) { padMove(scr, dir[0], dir[1]); padRepeat = fresh ? 0.4 : 0.14; }
+    if (hit('A')) {
+      const el = document.activeElement;
+      if (el && scr.contains(el) && el.tagName !== 'INPUT') el.click();
+      else if (!el || !scr.contains(el)) padFocus((scr.querySelector('.btn.primary:not([hidden])')) || padFocusables(scr)[0]);
+    }
+    if (hit('B') && PAD_BACK[scr.id]) { const back = scr.querySelector(PAD_BACK[scr.id]); if (back) back.click(); }
+  }
+  padPrev = now;
+}
+addEventListener('gamepadconnected', () => { const scr = activeScreen(); if (scr) padFocus(scr.querySelector('.btn.primary:not([hidden])')); });
+
 // ================================================================ layout & loop
 function applyRot() {
   const de = document.documentElement;
@@ -3935,6 +4007,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   const steps = Math.max(1, Math.ceil(dt / (1 / 120)));
+  pollPad(dt);
   if (!window.__tlv.freeze) for (let i = 0; i < steps; i++) update(dt / steps);
   MUS.want = save.muted ? null : musicFor();
   if (!window.__tlv.hold) render();
