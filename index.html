@@ -140,6 +140,17 @@ kbd.k{font:700 12px/1 var(--ui);border:1px solid #6b5a8f;background:#1b1429;bord
 .tchk input{accent-color:#f2c14e;margin-right:6px}
 .hs li i.ngx{font:800 11px/1 var(--ui);font-style:normal;color:#1a1024;background:var(--gold);border-radius:3px;padding:2px 5px;vertical-align:2px}
 .cb.cons{color:#ffe08a;border-color:rgba(255,224,138,.55)}
+.joy{--j:calc(var(--btn,64px) * 2);position:relative;width:var(--j);height:var(--j);border-radius:50%;border:2px solid rgba(236,223,196,.32);background:radial-gradient(circle,rgba(10,7,18,.25),rgba(10,7,18,.55));touch-action:none;flex:none}
+.joy .joyarrows{position:absolute;inset:0;width:100%;height:100%;fill:rgba(236,223,196,.45);pointer-events:none}
+.joy .knob{position:absolute;left:50%;top:50%;width:46%;height:46%;margin:-23% 0 0 -23%;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,240,200,.55),rgba(140,120,180,.45));border:2px solid rgba(236,223,196,.6);box-shadow:0 2px 10px rgba(0,0,0,.5);pointer-events:none;transition:transform .12s ease-out}
+.joy.on{border-color:var(--gold)}
+.joy.on .knob{transition:none;border-color:var(--gold)}
+#app[data-ctrl="below"] .joy{--j:calc(var(--below) - 16px)}
+#app[data-ctrl="below"] .cgroup:last-child{display:grid;grid-template-columns:repeat(2,var(--btn));grid-template-areas:"cons slide" "atk jump";gap:var(--gap);align-content:center}
+#app[data-ctrl="below"] .cb[data-act="cons"]{grid-area:cons}#app[data-ctrl="below"] .cb[data-act="slide"]{grid-area:slide}#app[data-ctrl="below"] .cb[data-act="sword"]{grid-area:atk}#app[data-ctrl="below"] .cb[data-act="jump"]{grid-area:jump}
+#app[data-ctrl="below"] .cb.big{--s:var(--btn)}
+#app[data-ctrl="below"] .cb[data-act="jump"],#app[data-ctrl="over"] .cb[data-act="jump"]{background:rgba(242,193,78,.18);border-color:rgba(242,193,78,.6)}
+#app[data-ctrl="over"] .joy{background:radial-gradient(circle,rgba(10,7,18,.12),rgba(10,7,18,.38))}
 .hs li.empty::before{content:none}
 .hsrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #hsName{font:600 16px/1 var(--ui);padding:10px 12px;border-radius:3px;border:1px solid var(--rim);background:#140e22;color:var(--parch);width:min(220px,60vw)}
@@ -177,8 +188,7 @@ html.touch .btn{min-height:44px}
     <button id="btnViolin" hidden>Play Violin<kbd>E</kbd></button>
     <div id="controls" aria-label="Touch controls">
       <div class="cgroup">
-        <button class="cb" data-act="left" tabindex="-1" aria-label="Move left"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg></button>
-        <button class="cb" data-act="right" tabindex="-1" aria-label="Move right"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button>
+        <div class="joy" id="joy" role="slider" aria-label="Move left or right"><svg class="joyarrows" viewBox="0 0 100 100"><path d="M18 50l10-9v18zM82 50l-10-9v18z"/></svg><div class="knob"></div></div>
       </div>
       <div class="cgroup">
         <button class="cb cons" id="cbCons" data-act="cons" tabindex="-1" aria-label="Consonance shield" hidden><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M11 15V7l4 1"/></svg>Shield</button>
@@ -196,7 +206,6 @@ html.touch .btn{min-height:44px}
 
   <section class="screen right" id="scrTitle">
     <div class="panel">
-      <div class="eyebrow">A chase in ten movements</div>
       <h1>The Last Violin</h1>
       <p class="lede">You carry a sword and the last violin in the land. The Hush follows you, reaching with eyes in its palms. Gather the scattered notes, defeat each tower&#x2019;s guardian, and play. Every melody costs The Hush a finger.</p>
       <div class="row">
@@ -338,7 +347,7 @@ html.touch .btn{min-height:44px}
 'use strict';
 const PAGE_SRC = '<!doctype html>\n' + document.documentElement.outerHTML;
 // ================================================================ constants
-const W = 960, H = 540, GY = 440;
+let W = 960; const H = 540, GY = 440; // W widens on touch screens held sideways (see layout)
 const RUN = 270, JUMPV = 730, GRAV = 1900, MAXD = 480, PSX = 380, NOTES_PER_LEVEL = 88;
 const $ = s => document.querySelector(s);
 const cvs = $('#game'), ctx = cvs.getContext('2d');
@@ -1612,7 +1621,7 @@ function getBG(i) {
   const stars = []; for (let k = 0; k < 80; k++) stars.push({ x: R() * W, y: R() * 300, s: R() * 1.5 + 0.3, p: R() * 6 });
   return (bgCache[i] = { far, mid, stars, LW });
 }
-const vignette = (() => { const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); const gr = g.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.7)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); return c; })();
+let vignette; const makeVignette = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); const gr = g.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.7)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); return c; }; vignette = makeVignette();
 const glowSprite = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,224,138,0.9)'); gr.addColorStop(0.35, 'rgba(255,200,90,0.35)'); gr.addColorStop(1, 'rgba(255,200,90,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return c; })();
 const CR = rng(4242);
 const CRACKS = Array.from({ length: 20 }, () => { let x = -70 + CR() * 120, y = -250 + CR() * 210; const pts = [[x, y]]; let a = CR() * 6.283; for (let k = 0; k < 4; k++) { a += (CR() - 0.5) * 1.5; x += Math.cos(a) * 15; y += Math.sin(a) * 15; pts.push([x, y]); } return pts; });
@@ -1660,7 +1669,7 @@ function drawSky(pal) {
   const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, pal.sky[0]); g.addColorStop(0.6, pal.sky[1]); g.addColorStop(1, pal.sky[2]);
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   const bg = G.bg, t = performance.now() / 1000;
-  for (const s of bg.stars) { const x = ((s.x - cam.x * 0.02) % W + W) % W; ctx.globalAlpha = 0.4 + 0.4 * Math.sin(t * 1.5 + s.p); ctx.fillStyle = '#fff'; ctx.fillRect(x, s.y - cam.y * 0.02, s.s, s.s); }
+  for (const s of bg.stars) { const x = ((s.x * W / 960 - cam.x * 0.02) % W + W) % W; ctx.globalAlpha = 0.4 + 0.4 * Math.sin(t * 1.5 + s.p); ctx.fillStyle = '#fff'; ctx.fillRect(x, s.y - cam.y * 0.02, s.s, s.s); }
   ctx.globalAlpha = 1;
   const mx = 780 - cam.x * 0.03, my = 105 - cam.y * 0.05;
   const mg = ctx.createRadialGradient(mx, my, 20, mx, my, 150); mg.addColorStop(0, hexA(pal.moon, 0.35)); mg.addColorStop(1, hexA(pal.moon, 0));
@@ -2482,7 +2491,12 @@ function taronAt(x, y, s, opts = {}) {
   state = st; storyPose = null; Object.assign(P, save);
 }
 function renderStory() {
-  const k = cvs.width / W; ctx.setTransform(k, 0, 0, k, 0, 0); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const RW = W;
+  if (RW !== 960) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#030208'; ctx.fillRect(0, 0, cvs.width, cvs.height); }
+  W = 960; try { renderStory960(); } finally { W = RW; }
+}
+function renderStory960() {
+  const k = cvs.height / H; ctx.setTransform(k, 0, 0, k, (cvs.width - W * k) / 2, 0); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   const sc = STORY[SS.kind][SS.i][0], t = SS.t, T = G.t;
   const fadeIn = clamp(t / 0.8, 0, 1);
   const beast = (bx, gy, reach, alpha, s = 1, weak = 0) => drawBeastAt({ bx, gy, h1: { x: bx + 140 + reach, y: gy - 210 + Math.sin(T * 2) * 10 }, h2: { x: bx + 110 + reach * 0.8, y: gy - 100 + Math.sin(T * 1.6) * 8 }, alpha, weak, tx: W / 2 + 100, ty: 380, scale: s });
@@ -3599,6 +3613,22 @@ document.querySelectorAll('.cb').forEach(btn => {
   btn.addEventListener('pointerup', up); btn.addEventListener('pointercancel', up); btn.addEventListener('lostpointercapture', up);
   btn.addEventListener('contextmenu', e => e.preventDefault());
 });
+(() => {
+  const joy = $('#joy'), knob = joy.querySelector('.knob'); let pid = null;
+  const set = (l, r) => { if (r && !touch.right && inGame()) press('right'); if (l && !touch.left && inGame()) press('left'); touch.left = l; touch.right = r; };
+  const move = e => {
+    const b = joy.getBoundingClientRect(), R = b.width / 2;
+    let dx = e.clientX - (b.left + R), dy = e.clientY - (b.top + R); const d = Math.hypot(dx, dy), m = R * 0.62;
+    if (d > m) { dx *= m / d; dy *= m / d; }
+    knob.style.transform = `translate(${dx}px,${dy}px)`;
+    const dead = R * 0.2; set(dx < -dead, dx > dead);
+  };
+  const end = () => { pid = null; joy.classList.remove('on'); knob.style.transform = ''; set(false, false); };
+  joy.addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); if (state === 'reward') { endReward(); return; } pid = e.pointerId; try { joy.setPointerCapture(pid); } catch (_) {} joy.classList.add('on'); move(e); });
+  joy.addEventListener('pointermove', e => { if (e.pointerId === pid) move(e); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => joy.addEventListener(ev, e => { if (e.pointerId === pid) end(); }));
+  joy.addEventListener('contextmenu', e => e.preventDefault());
+})();
 cvs.addEventListener('contextmenu', e => e.preventDefault());
 cvs.addEventListener('pointerdown', () => { if (state === 'reward') endReward(); });
 
@@ -3659,17 +3689,23 @@ function layout() {
     // Pick the layout that leaves the biggest game view without buttons covering it.
     const btn = clamp(Math.min(aw, ah) * 0.16, 46, 80), gap = Math.round(btn * 0.14);
     const sideW = btn * 2 + gap + 18;
-    const bBtn = Math.min(btn, (aw - 40) / 6.6);
-    below = Math.round(bBtn * 1.3 + 14);
+    below = Math.round(clamp(aw * 0.4, 120, 190));          // joystick left, 2x2 buttons right
+    const bBtn = Math.min(btn, (below - 16 - gap) / 2);
     const wSide = Math.min(aw - 2 * sideW, ah * 16 / 9), wBelow = Math.min(aw, (ah - below) * 16 / 9), wOver = w;
-    if (Math.max(wSide, wBelow) >= wOver * 0.7) {
+    if (aw > ah * 1.2) {
+      // held sideways: widen the view to the screen's shape so it fills the whole screen
+      mode = 'over'; W = Math.round(clamp(H * aw / ah, 960, 1300)); w = Math.min(aw, ah * W / H);
+      app.style.setProperty('--btn', clamp(ah * 0.15, 44, 72) + 'px');
+    } else if (Math.max(wSide, wBelow) >= wOver * 0.7) {
       if (wSide >= wBelow) { mode = 'side'; w = wSide; app.style.setProperty('--btn', btn + 'px'); }
       else { mode = 'below'; w = wBelow; app.style.setProperty('--btn', bBtn + 'px'); }
     } else { mode = 'over'; app.style.setProperty('--btn', Math.max(42, btn * 0.8) + 'px'); }
     app.style.setProperty('--gap', gap + 'px'); app.style.setProperty('--side', sideW + 'px'); app.style.setProperty('--below', below + 'px');
   }
+  if (mode !== 'over' || !TOUCH || aw <= ah * 1.2) W = 960;
+  if (!vignette || vignette.width !== W) vignette = makeVignette();
   app.dataset.ctrl = mode;
-  w = Math.max(200, w); const h = w * 9 / 16;
+  w = Math.max(200, w); const h = w * H / W;
   stage.style.width = w + 'px'; stage.style.height = h + 'px';
   stage.style.marginBottom = (mode === 'below' ? below : 0) + 'px';
   app.dataset.ib = mode === 'side' || (mode === 'below' && (ah - h - below) / 2 >= 50) ? 'out' : 'in';
